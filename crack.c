@@ -14,11 +14,9 @@ const int HASH_LEN = 33;        // Length of MD5 hash strings
 char * tryWord(char * plaintext, char * hashFilename)
 {
     // Hash the plaintext
-    char plainHash[HASH_LEN];
-    md5(plaintext, plainHash);
-    plainHash[32] = '\0';
+    char *plainHash = md5(plaintext, strlen(plaintext));
 
-    // Open the hash file
+    // Open the hash file 
     FILE *hashFile = fopen(hashFilename, "r");
     if (!hashFile) return NULL;
 
@@ -65,14 +63,13 @@ int main(int argc, char *argv[])
     // These two lines exist for testing. When you have
     // tryWord working, it should display the hash for "hello",
     // which is 5d41402abc4b2a76b9719d911017c592.
-    // Then you can remove these two lines and complete the rest
+    // Then you can remove these twolines and complete the rest
     // of the main function below.
     char *found = tryWord("hello", "hashes00.txt");
     printf("%s %s\n", found, "hello");
 
 
     // Open the dictionary file for reading.
-    
 
     // For each dictionary word, pass it to tryWord, which
     // will attempt to match it against the hashes in the hash_file.
