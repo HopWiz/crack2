@@ -14,9 +14,14 @@ const int HASH_LEN = 33;        // Length of MD5 hash strings
 char * tryWord(char * plaintext, char * hashFilename)
 {
     // Hash the plaintext
+    char plainHash[HASH_LEN];
+    md5(plaintext, plainHash);
+    plainHash[32] = '\0';
 
     // Open the hash file
-
+    FILE *hf = fopen(hashFilename, "r");
+    if (!hf) return NULL;
+    
     // Loop through the hash file, one line at a time.
 
     // Attempt to match the hash from the file to the
