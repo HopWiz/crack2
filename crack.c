@@ -19,27 +19,41 @@ char * tryWord(char * plaintext, char * hashFilename)
     plainHash[32] = '\0';
 
     // Open the hash file
-    FILE *hf = fopen(hashFilename, "r");
-    if (!hf) return NULL;
-    
+    FILE *hashFile = fopen(hashFilename, "r");
+    if (!hashFile) return NULL;
+
     // Loop through the hash file, one line at a time.
+    char line[HASH_LEN];
+    while (fgets(line, sizeof(line), hashFile) != NULL) {
+        // strip newline/carriage return
+        size_t n = strlen(line);
+        while (n > 0 && (line[n-1] == '\n' || line[n-1] == '\r')) {
+            line[--n] = '\0';
+        }
 
-    // Attempt to match the hash from the file to the
-    // hash of the plaintext.
+        // Attempt to match the hash from the file to the
+        // hash of the plaintext
+        if (strcmp(line, plainHash) == 0) {
+            // if there is a match, return the hash.
+            char *ret = (char *)malloc(HASH_LEN);
+            if (ret) {
+                strcpy(ret, line);
+            }
+            
+            // before returning, close the opened file
+            fclose(hashFile);
+            // return the found hash
+            return ret;
+        }
+    }
 
-    // If there is a match, you'll return the hash.
-    // If not, return NULL.
-
-    // Before returning, do any needed cleanup:
-    //   Close files?
-    //   Free memory?
-
-    // Modify this line so it returns the hash
-    // that was found, or NULL if not found.
-    return "0123456789abcdef0123456789abcdef";
+    // if not found, close file and return NULL.
+    fclose(hashFile);
+    return NULL;
 }
 
-
+// main function, chekc the command line arguments for proper usage, tests tryWord() using the word "hello" 
+// 
 int main(int argc, char *argv[])
 {
     if (argc < 3) 
