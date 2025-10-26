@@ -16,9 +16,21 @@ char * tryWord(char * plaintext, char * hashFilename)
     // Hash the plaintext
     char *plainHash = md5(plaintext, strlen(plaintext));
 
+    // another check to see if md5() failed to allocate memory or compute the hash
+    if (!plainHash) {
+        return NULL;
+    }
+
     // Open the hash file 
     FILE *hashFile = fopen(hashFilename, "r");
-    if (!hashFile) return NULL;
+    
+    // if the hash file doesn't open successfully
+    if (!hashFile) {
+        // free md5 before returning
+        free(plainHash);
+        return NULL;
+
+    }
 
     // Loop through the hash file, one line at a time.
     char line[HASH_LEN];
@@ -40,18 +52,23 @@ char * tryWord(char * plaintext, char * hashFilename)
             
             // before returning, close the opened file
             fclose(hashFile);
+            // free the md5 result
+            free(plainHash);
             // return the found hash
             return ret;
         }
     }
 
-    // if not found, close file and return NULL.
+    // if not found, close file, free md5 string, and return NULL.
     fclose(hashFile);
+    free(plainHash);
     return NULL;
 }
 
-// main function, chekc the command line arguments for proper usage, tests tryWord() using the word "hello" 
-// 
+// main function, check the command line arguments for proper usage, opens the dictionary file
+// and reads it line by line and sends each word to tryWord() to check against the hashes
+// and prints any cracked hashes with their corresponding word and counts
+// as well as displays how many hashes were cracked
 int main(int argc, char *argv[])
 {
     if (argc < 3) 
@@ -60,27 +77,51 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    // These two lines exist for testing. When you have
-    // tryWord working, it should display the hash for "hello",
-    // which is 5d41402abc4b2a76b9719d911017c592.
-    // Then you can remove these twolines and complete the rest
-    // of the main function below.
-    char *found = tryWord("hello", "hashes00.txt");
-    printf("%s %s\n", found, "hello");
-
-
     // Open the dictionary file for reading.
+    FILE *dictFile = fopen(argv[2], "r");
+    
+    // if the dictionary file doesn't open successfully
+    if (!dictFile)
+    {
+        fprintf(stderr, "error: could not open dictionary file %s\n", argv[2]);
+        exit(1);
+    }
 
     // For each dictionary word, pass it to tryWord, which
     // will attempt to match it against the hashes in the hash_file.
-    
-    // If we got a match, display the hash and the word. For example:
-    //   5d41402abc4b2a76b9719d911017c592 hello
-    
+    char word[PASS_LEN + 2];
+    int cracked = 0;
+
+    while (fgets(word, sizeof(word), dictFile))
+    {
+        // remove newline or carriage return characters
+        size_t L = strlen(word);
+        while (L > 0 && (word[L - 1] == '\n' || word[L - 1] == '\r'))
+        {
+            word[--L] = '\0';
+        }
+        
+        if (L == 0) continue; // skip empty lines
+
+        // send word to tryWord to see if it matches any hash
+        char *match = tryWord(word, argv[1]);
+
+        // If we got a match, display the hash and the word.
+        if (match)
+        {
+            // print the hash and the corresponding word
+            printf("%s %s\n", match, word);
+            free(match); // free returned string
+            cracked++;   // increase cracked counter
+        }
+    }
+
     // Close the dictionary file.
-
-    // Display the number of hashes that were cracked.
+    fclose(dictFile);
     
-    // Free up any malloc'd memory?
-}
+    // Display the number of hashes that were cracked.
+    printf("%d Hashes Cracked!\n", cracked);
 
+    // Free up any malloc'd memory?
+    return 0;
+}
