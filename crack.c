@@ -117,11 +117,9 @@ int main(int argc, char *argv[])
     }
 
     // Close the dictionary file.
+    // Free up any malloc'd memory?
     fclose(dictFile);
     
     // Display the number of hashes that were cracked.
     printf("%d hashes cracked!\n", cracked);
-
-    // Free up any malloc'd memory?
-    return 0;
 }
