@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     fclose(dictFile);
     
     // Display the number of hashes that were cracked.
-    printf("%d Hashes Cracked!\n", cracked);
+    printf("%d hashes cracked!\n", cracked);
 
     // Free up any malloc'd memory?
     return 0;
